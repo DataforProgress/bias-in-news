@@ -7,12 +7,17 @@ from collections import defaultdict
 sites = ["https://www.breitbart.com", "https://www.foxnews.com"]
 
 def article_extractor(newspaper_url, title_topic=None):
+    """
+    This takes a root url and pulls all articles the newspapers package can access, without caching.
+    :param newspaper_url: url of homepage
+    :param title_topic: for filtering by topic in title, if None get all
+    :return: dataframe with article title and text, nothing else
+    TODO: parse extra fields and include in data frame, curr issue is this breaks pickle serialization
+    """
     dd = defaultdict(list)
-
     source = newspaper.build(newspaper_url, memoize_articles=False)
     arts = [i.url for i in source.articles]
-    print(source)
-    print(len(arts))
+    print("Articles: " + str(len(arts)))
     if title_topic is None:
         relevant_arts = [i for i in arts]
     else:
@@ -34,6 +39,11 @@ def article_extractor(newspaper_url, title_topic=None):
     return pd.DataFrame.from_dict(dd)
 
 def get_articles(*newspaper_url, **kwargs):
+    """
+    Given a list of urls, get the articles from those papers and save them as dataframes to disk
+    :param newspaper_url: list of newspaper homepages
+    :param kwargs:
+    """
     for url in newspaper_url:
         results = []
         articles = article_extractor(url)
@@ -47,6 +57,11 @@ def get_articles(*newspaper_url, **kwargs):
         articles.to_pickle(url.split('.')[-2])
 
 def clean_text(string):
+    """
+    Remove random spammy text from especially Breitbart articles
+    :param string: to clean
+    :return:
+    """
     string = re.sub(r"SIGN UP FOR OUR NEWSLETTER", "", string)
     string = re.sub(r"Read more here", "", string)
     string = re.sub(r"REUTERS", "", string)
@@ -55,6 +70,11 @@ def clean_text(string):
     return string
 
 def preprocess_articles(articles):
+    """
+    Basic article cleaning with textacy
+    :param articles:
+    :return:
+    """
     clean_arts = []
     for art in articles:
         clean_art = tcy.preprocess.preprocess_text(art,
