@@ -137,3 +137,6 @@ fabric.properties
 .idea/httpRequests
 
 data/default_config.ini
+
+creds.json
+
