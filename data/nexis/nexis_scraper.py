@@ -3,9 +3,10 @@ from selenium.webdriver.support.select import Select
 from time import sleep
 from math import ceil
 import json
-
+import sys
 from datetime import date, timedelta, datetime
 
+sys.setrecursionlimit(1500)
 
 def try_until_success(to_exec, fail_after, sleep_time=0.5):
     """
@@ -139,7 +140,12 @@ def get_nexis_source_between(driver, start_date, end_date, days_per_search, sour
             driver.execute_script('''subCheckRangeOptionsStatus('sel', 'delivery_DnldForm', 'false');''')
             rangetextbox.click()
             try_until_success('''driver.find_element_by_id("img_orig_top").click()''', None)
-            try_until_success('''driver.find_element_by_class_name("suspendbox")''', None)
+            try:
+                try_until_success('''driver.find_element_by_class_name("suspendbox")''', 200)
+            except:
+                rangetextbox.click()
+                try_until_success('''driver.find_element_by_id("img_orig_top").click()''', None)
+                try_until_success('''driver.find_element_by_class_name("suspendbox")''', None, sleep_time=1)
             try_until_success('''driver.page_source''', None)
             HTML = driver.page_source
             while 'Ready to Download' not in HTML:
@@ -157,7 +163,7 @@ def get_nexis_source_between(driver, start_date, end_date, days_per_search, sour
 
 fp = get_download_profile()
 driver = webdriver.Firefox(firefox_profile=fp)
-d1 = date(2017, 8, 22)  # start date
+d1 = date(2017, 11, 23)  # start date
 d2 = date(2018, 7, 11)  # end date
 # number of days per NEXIS search. Ideally this is as large as possible without the possiblility of exceeding 3000
 # results as after 3000 NEXIS refuses to display more than 1000 results, this is irritating but unavoidable
