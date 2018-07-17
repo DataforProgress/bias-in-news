@@ -145,3 +145,5 @@ geckodriver.log
 sources/
 
 data/*.csv
+
+embeddings/source_embeddings/*.npy
