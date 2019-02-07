@@ -32,6 +32,7 @@ def get_field_idx_val(i_init, article_lines, fields):
     field_dict = OrderedDict([(field, {'idx': len(article_lines), 'val': None}) for field in fields])
     for idx, line in enumerate(article_lines[i_init:]):
         check = [field for field in fields if field in line]
+        #print(line)
         if len(check) == 1:
             field_dict[check[0]]['idx'] = i_init + idx
             field_dict[check[0]]['val'] = line.split(check[0])[-1]
@@ -48,9 +49,9 @@ def parse_pre_meta(i_date, article_lines):
     fields = ['BYLINE:', 'SECTION:', 'LENGTH:', 'HIGHLIGHT:']
     field_dict = get_field_idx_val(i_date, article_lines, fields.copy())
     # The headline should be two lines above the first line in pre_meta
-    i_headline = min(field_dict.values(), key=lambda field: field['idx'] - 2)['idx']
+    i_headline = min(field_dict.values(), key=lambda field: field['idx'] - 1)['idx']
     headline = article_lines[i_headline]
-    i_pre_meta = max(field_dict.values(), key=lambda field: field['idx'] if field['idx'] != len(article_lines) else -1)['idx']
+    i_pre_meta = max(field_dict.values(), key=lambda field: field['idx'] if field['idx'] != len(article_lines) else - 1)['idx']
     field_dict.update({'HEADLINE:': {'idx': i_headline, 'val': headline}})
     return i_pre_meta, field_dict
 
@@ -58,15 +59,16 @@ def parse_pre_meta(i_date, article_lines):
 def parse_post_meta(i_pre_meta, article_lines):
     fields = ['URL:', 'GRAPHIC:', 'LANGUAGE:', 'DOCUMENT-TYPE:', 'PUBLICATION-TYPE:', 'SUBJECT:', 'PERSON:', 'CITY:', 'STATE:', 'COUNTRY:']
     field_dict = get_field_idx_val(i_pre_meta, article_lines, fields.copy())
-    i_text = i_pre_meta + 2
-    text = article_lines[i_text:min(field_dict.values(), key=lambda field: field['idx'] - 2)['idx']]
-    text = ' '.join([line if line != '' else '\n' for line in text])
+    i_text = i_pre_meta + 1
+    text = article_lines[i_text:min(field_dict.values(), key=lambda field: field['idx'] - 1)['idx']]
+    text = ' '.join(text)
     field_dict.update({'TEXT:': {'idx': i_text, 'val': text}})
     return field_dict
 
 
 def get_article_field_dict(article):
     article_lines = article.splitlines()
+    article_lines = [line if line != '' else '\n' for line in article_lines]
     field_dict = get_date(article_lines)
     if field_dict['DATE:']['idx'] == len(article_lines) - 1:
         return None
